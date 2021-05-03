@@ -16,7 +16,7 @@ namespace AnimalsExampleOOP_Tjedan1Dan1
         {
             this.Animals.Add(new Parrot());
             this.Animals.Add(new Pigeon());
-            this.Animals.Add(new Dog());
+            this.Animals.Add(new Sheep());
             this.Animals.Add(new Cat());
         }
 
