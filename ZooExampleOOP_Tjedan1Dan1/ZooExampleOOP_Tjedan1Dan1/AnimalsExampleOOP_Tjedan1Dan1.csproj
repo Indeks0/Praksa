@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>AnimalsExampleOOP_Tjedan1Dan1</AssemblyName>
+    <RootNamespace>AnimalsExampleOOP_Tjedan1Dan1</RootNamespace>
+  </PropertyGroup>
+
+</Project>

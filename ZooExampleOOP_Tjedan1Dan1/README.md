@@ -1,0 +1,1 @@
+Budem update readme i objasnio kod veceras kad sve završim.
