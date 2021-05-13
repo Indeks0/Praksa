@@ -24,7 +24,7 @@ namespace Repository
             connection.Open();
 
             SqlCommand command = new SqlCommand(
-                "INSERT INTO Cities (Zip, CityName) VALUES(@zipCode, @cityName)");
+                "INSERT INTO Cities (ZipCode, CityName) VALUES(@zipCode, @cityName)");
             command.Parameters.AddWithValue("@zipCode", zipCode);
             command.Parameters.AddWithValue("@cityName", name);
             command.Connection = connection;
@@ -50,7 +50,7 @@ namespace Repository
             connection.Open();
 
             SqlCommand command = new SqlCommand(
-                "SELECT * FROM Cities WHERE Zip = @zipCode");
+                "SELECT * FROM Cities WHERE ZipCode = @zipCode");
             command.Parameters.AddWithValue("@zipCode", zipCode);
             command.Connection = connection;
 
@@ -69,6 +69,54 @@ namespace Repository
 
         }
 
+        [HttpGet]
+        public async Task<List<ICity>> GetAllDataAsync(CitySort citySort)
+        {
+            SqlConnection connection = new SqlConnection();
+            connection.ConnectionString = ConnectionString;
+            connection.Open();
+
+            SqlCommand command = new SqlCommand(
+                "SELECT * FROM Cities");
+            if (citySort.FilterBy != "")
+            {
+                command.CommandText += " WHERE ZipCode LIKE '" + citySort.FilterBy + "%'";
+            }
+            else
+            {
+                command.CommandText += " WHERE CityName IS NOT NULL";
+            }
+            if (citySort.SortBy != "")
+            {
+                command.CommandText += " ORDER BY " + citySort.SortBy + " " + citySort.SortingOrder;
+            }
+            else
+            {
+                command.CommandText += " ORDER BY CityName ASC";
+            }
+            command.CommandText += " OFFSET " + (citySort.PageNumber * 5) + " ROWS FETCH NEXT " + 5 + " ROWS ONLY ";
+            command.Connection = connection;
+
+            SqlDataReader reader = command.ExecuteReader();
+            List<ICity> cities = new List<ICity>();
+
+            if (reader.HasRows)
+            {
+                while (await reader.ReadAsync())
+                {
+                    cities.Add(new City(reader.GetInt32(0), reader.GetString(1)));
+                }
+                connection.Close();
+                return cities;
+            }
+            else
+            {
+                connection.Close();
+                return null;
+            }
+
+        }
+
         [HttpPut]
         public async Task<int> UpdateDataAsync(int zipCode, string name)
         {
@@ -77,7 +125,7 @@ namespace Repository
             connection.Open();
 
             SqlCommand command = new SqlCommand(
-                "UPDATE Cities SET CityName = @cityName WHERE Zip=" + zipCode + "");
+                "UPDATE Cities SET CityName = @cityName WHERE ZipCode=" + zipCode + "");
             command.Parameters.AddWithValue("@cityName", name);
             command.Connection = connection;
 
@@ -104,7 +152,7 @@ namespace Repository
             connection.Open();
 
             SqlCommand command = new SqlCommand(
-                "DELETE FROM Cities WHERE Zip=" + zipCode + "");
+                "DELETE FROM Cities WHERE ZipCode=" + zipCode + "");
             command.Connection = connection;
             int result;
 

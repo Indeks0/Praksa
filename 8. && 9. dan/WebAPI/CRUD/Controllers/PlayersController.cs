@@ -38,9 +38,9 @@ namespace CRUD.Controllers
         }
 
         [HttpGet]
-        public async Task<HttpResponseMessage> GetAllDataAsync()
+        public async Task<HttpResponseMessage> GetAllDataAsync([FromBody] PlayerSort player)
         {
-            List<IPlayer> result = await Service.GetAllDataAsync();
+            List<IPlayer> result = await Service.GetAllDataAsync(player);
             if (result != null)
             {
                 return Request.CreateResponse(HttpStatusCode.OK, this.Mapper.Map<List<PlayerREST>>(result));
@@ -49,7 +49,7 @@ namespace CRUD.Controllers
         }
 
         [HttpPut]
-        public async Task<HttpResponseMessage> UpdatePlayerAsync([FromBody] PlayerREST player, int id) //Potrebno promjeniti logiku unutar repo
+        public async Task<HttpResponseMessage> UpdatePlayerAsync([FromBody] PlayerREST player, Guid id) //Potrebno promjeniti logiku unutar repo
         {
             int result = await Service.UpdatePlayerAsync(this.Mapper.Map<IPlayer>(player), id);
             if (result == 1)

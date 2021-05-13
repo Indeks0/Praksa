@@ -8,7 +8,7 @@ namespace Models.Common
 {
     public interface IPlayer
     {
-        int Id { get; set; }
+        Guid Id { get; set; }
         string Name { get; set; }
         string Surname { get; set; }
         ICity PlaceOfResidence { get; set; }

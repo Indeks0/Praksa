@@ -17,7 +17,7 @@ namespace Repository
         public static string ConnectionString = ConfigurationManager.ConnectionStrings["myConnection"].ConnectionString;
 
         [HttpPost]
-        public async Task<int> AddToDBAsync(IPlayer player) //PROMJENITI SELECT, UKLONITI LISTU I NAPRAVITI U SELECTU
+        public async Task<int> AddToDBAsync(IPlayer player)
         {
             SqlConnection connection = new SqlConnection();
             List<int> zipCodes = new List<int>();
@@ -25,45 +25,39 @@ namespace Repository
             connection.ConnectionString = ConnectionString;
             connection.Open();
 
-            SqlCommand commandCheckZip = new SqlCommand("SELECT Zip FROM Cities");
+            SqlCommand commandCheckZip = new SqlCommand("SELECT ZipCode FROM Cities WHERE ZipCode = '" + player.PlaceOfResidence.ZipCode + "'");
             commandCheckZip.Connection = connection;
             SqlDataReader readerCheckZip = commandCheckZip.ExecuteReader();
 
-            while (readerCheckZip.Read())
+            if ((readerCheckZip.HasRows))
             {
-                zipCodes.Add(readerCheckZip.GetInt32(0));
-            }
-
-            foreach (int zip in zipCodes) //provjera postoji li ZipCode u DB i hoće li se odobriti unos igrača u DB
-            {
-                if (zip == player.PlaceOfResidence.ZipCode)
+                player.Id = Guid.NewGuid();
+                int i = player.Id.ToString().Length;
+                readerCheckZip.Close();
+                SqlCommand commandAddToDb = new SqlCommand(
+                    "INSERT INTO Players (Id, Name, Surname, CityId) VALUES (@id, @name, @surname, @cityId);");
+                commandAddToDb.Parameters.AddWithValue("@id", player.Id);
+                commandAddToDb.Parameters.AddWithValue("@name", player.Name);
+                commandAddToDb.Parameters.AddWithValue("@surname", player.Surname);
+                commandAddToDb.Parameters.AddWithValue("@cityId", player.PlaceOfResidence.ZipCode);
+                commandAddToDb.Connection = connection;
+                int result;
+                try
                 {
-                    readerCheckZip.Close();
-                    SqlCommand commandAddToDb = new SqlCommand(
-                        "INSERT INTO Players (Id, Name, Surname, City) VALUES (@id, @name, @surname, @city);");
-                    commandAddToDb.Parameters.AddWithValue("@id", player.Id);
-                    commandAddToDb.Parameters.AddWithValue("@name", player.Name);
-                    commandAddToDb.Parameters.AddWithValue("@surname", player.Surname);
-                    commandAddToDb.Parameters.AddWithValue("@city", player.PlaceOfResidence.ZipCode);
-                    commandAddToDb.Connection = connection;
-                    int result;
-                    try
-                    {
-                        result = await commandAddToDb.ExecuteNonQueryAsync();
-                        connection.Close();
-                        return result;
-                    }
-                    catch (Exception exception)
-                    {
-                        return 0;
-                    }
+                    result = await commandAddToDb.ExecuteNonQueryAsync();
+                    connection.Close();
+                    return result;
+                }
+                catch (Exception exception)
+                {
+                    return 0;
                 }
             }
             return 0;
         }
 
         [HttpGet]
-        public async Task<List<IPlayer>> GetAllDataAsync()
+        public async Task<List<IPlayer>> GetAllDataAsync(PlayerSort playerSort)
         {
             List<IPlayer> team = new List<IPlayer>();
             SqlConnection connection = new SqlConnection();
@@ -71,7 +65,25 @@ namespace Repository
             connection.ConnectionString = ConnectionString;
             connection.Open();
 
-            SqlCommand command = new SqlCommand("SELECT Players.Id, Players.Name, Players.Surname, Players.City, Cities.CityName FROM Players, Cities WHERE Players.City = Cities.Zip ");
+            SqlCommand command = new SqlCommand(
+                "SELECT Players.Id, Players.Name, Players.Surname, Players.CityId, Cities.CityName FROM Players, Cities");
+            if (playerSort.FilterBy != "")
+            {
+                command.CommandText += " WHERE Name = '" + playerSort.FilterBy + "' AND Players.CityId = Cities.ZipCode";
+            }
+            else
+            {
+                command.CommandText += " WHERE Name IS NOT NULL AND Players.CityId = Cities.ZipCode";
+            }
+            if (playerSort.SortBy != "")
+            {
+                command.CommandText += " ORDER BY " + playerSort.SortBy + " " + playerSort.SortingOrder;
+            }
+            else
+            {
+                command.CommandText += " ORDER BY CityName ASC";
+            }
+            command.CommandText += " OFFSET " + (playerSort.PageNumber * 5) + " ROWS FETCH NEXT " + 5 + " ROWS ONLY ";
             command.Connection = connection;
 
             SqlDataReader reader = command.ExecuteReader();
@@ -80,7 +92,7 @@ namespace Repository
             {
                 while (await reader.ReadAsync())
                 {
-                    team.Add(new Player(reader.GetInt32(0), reader.GetString(1), reader.GetString(2), new City(reader.GetInt32(3), reader.GetString(4))));
+                    team.Add(new Player(Guid.Parse(reader.GetString(0)), reader.GetString(1), reader.GetString(2), new City(reader.GetInt32(3), reader.GetString(4))));
                 }
                 connection.Close();
                 return team;
@@ -93,7 +105,7 @@ namespace Repository
         }
 
         [HttpPut]
-        public async Task<int> UpdatePlayerAsync(IPlayer player, int id)
+        public async Task<int> UpdatePlayerAsync(IPlayer player, Guid id)
         {
             if (id != player.Id)
             {
@@ -104,7 +116,7 @@ namespace Repository
             connection.ConnectionString = ConnectionString;
             connection.Open();
 
-            SqlCommand command = new SqlCommand("UPDATE Players SET Name = @name, Surname = @surname, City = @city WHERE Id =" + id + "");
+            SqlCommand command = new SqlCommand("UPDATE Players SET Name = @name, Surname = @surname, CityId = @city WHERE Id =" + id + "");
             command.Parameters.AddWithValue("@name", player.Name);
             command.Parameters.AddWithValue("@surname", player.Surname);
             command.Parameters.AddWithValue("@city", player.PlaceOfResidence.ZipCode);

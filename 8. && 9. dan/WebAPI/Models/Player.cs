@@ -8,12 +8,12 @@ namespace Models
 {
     public class Player : IPlayer
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Surname { get; set; }
         public ICity PlaceOfResidence { get; set; }
 
-        public Player(int id, string name, string surname, City placeOfResidence)
+        public Player(Guid id, string name, string surname, City placeOfResidence)
         {
             this.Id = id;
             this.Name = name;

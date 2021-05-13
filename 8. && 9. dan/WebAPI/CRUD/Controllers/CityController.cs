@@ -49,6 +49,16 @@ namespace CRUD.Controllers
             return Request.CreateResponse(HttpStatusCode.BadRequest, $"The City with zipcode {zipCode} was not found in DB.");
         }
 
+        [HttpGet]
+        public async Task<HttpResponseMessage> GetAllDataAsync([FromBody] CitySort citySort)
+        {
+            List<ICity> result = await Service.GetAllDataAsync(citySort);
+            if (result != null)
+            {
+                return Request.CreateResponse(HttpStatusCode.OK, this.Mapper.Map<List<CityREST>>(result));
+            }
+            return Request.CreateResponse(HttpStatusCode.BadRequest, $"There are no Cities in the DB.");
+        }
         [HttpPut]
         public async Task<HttpResponseMessage> UpdateDataAsync(int zipCode, [FromBody] string name)
         {
