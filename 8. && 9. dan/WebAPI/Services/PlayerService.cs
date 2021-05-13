@@ -30,13 +30,13 @@ namespace Services
             return result;
         }
 
-        public async Task<List<IPlayer>> GetAllDataAsync()
+        public async Task<List<IPlayer>> GetAllDataAsync(PlayerSort player)
         {
-            List<IPlayer> result = await Repo.GetAllDataAsync();
+            List<IPlayer> result = await Repo.GetAllDataAsync(player);
             return result;
         }
 
-        public async Task<int> UpdatePlayerAsync(IPlayer player, int id)
+        public async Task<int> UpdatePlayerAsync(IPlayer player, Guid id)
         {
             int result = await Repo.UpdatePlayerAsync(player, id);
             return result;

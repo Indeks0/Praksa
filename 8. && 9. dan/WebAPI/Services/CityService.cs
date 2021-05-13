@@ -48,5 +48,11 @@ namespace Services
             int result = await Repo.DeleteDataAsync(zipCode);
             return result;
         }
+
+        public async Task<List<ICity>> GetAllDataAsync(CitySort citySort)
+        {
+            List<ICity> result = await Repo.GetAllDataAsync(citySort);
+            return result;
+        }
     }
 }

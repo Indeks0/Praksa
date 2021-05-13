@@ -1,18 +1,17 @@
-﻿using Models;
-using Models.Common;
+﻿using Models.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Repository.Common
+namespace Services.Common
 {
-    public interface IPlayerRepository
+    public interface IPlayerService
     {
         Task<int> AddToDBAsync(IPlayer player);
-        Task<List<IPlayer>> GetAllDataAsync();
-        Task<int> UpdatePlayerAsync(IPlayer player, int id);
+        Task<List<IPlayer>> GetAllDataAsync(PlayerSort playerSort);
+        Task<int> UpdatePlayerAsync(IPlayer player, Guid id);
         Task<int> DeleteAsync(int id);
     }
 }
